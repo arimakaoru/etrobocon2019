@@ -9,6 +9,8 @@
 #include <cstring>
 #include "Controller.h"
 #include "Display.h"
+#include "LineTracer.h"
+#include "Navigator.h"
 
 enum class Brightness { WHITE, BLACK };
 
@@ -58,6 +60,11 @@ class Calibrator {
    * @return 正常終了したかどうかの真偽値（Trueなら正常終了）
    */
   bool setBrightness(Brightness brightness);
+
+  /** スタート位置の自己位置調整をする
+   * @return 正常終了したかどうかの真偽値（Trueなら正常終了）
+   */
+  bool setStartLine();
 
  private:
   Controller& controller;

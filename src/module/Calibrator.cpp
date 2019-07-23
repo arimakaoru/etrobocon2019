@@ -41,6 +41,10 @@ bool Calibrator::calibration()
   Display::print(5, "White: %3d", brightnessOfWhite);
   Display::print(6, "Black: %3d", brightnessOfBlack);
 
+  if(!setStartLine()) {
+    return false;
+  }
+
   return true;
 }
 
@@ -93,6 +97,54 @@ bool Calibrator::setLRCourse()
   Display::print(4, "course: %s", course);
 
   controller.speakerPlayToneFS6(100);
+  return true;
+}
+
+bool Calibrator::setStartLine()
+{
+  int r, g, b, currentBrightness;
+  int tragetBrightness = (brightnessOfBlack + brightnessOfWhite) / 2;
+  LineTracer lineTracer(controller, tragetBrightness, isLeft);
+  LineTracer reverseLineTracer(controller, tragetBrightness, !isLeft);
+
+  NormalCourseProperty normalCourseProperty = { 10, 100, { 0.1, 0.0, 0.0 }, { 0.05, 0.0, 0.12 } };
+
+  // 緑までライントレースしながら進む
+  while(!controller.buttonIsPressedLeft()) {
+  }
+  while(true) {
+    reverseLineTracer.run(normalCourseProperty);
+    controller.getRawColor(r, g, b);
+    controller.convertHsv(r, g, b);
+    if(controller.hsvToColor(controller.getHsv()) == Color::green) {
+      controller.stopMotor();
+      break;
+    }
+  }
+  controller.speakerPlayToneFS6(100);
+
+  Navigator navigator(controller);
+  // バック
+  navigator.move(-80, 10);
+  // 180度回転
+  navigator.spin(180);
+  // int angle = 90;
+  // navigator.spin(angle);
+  // while(true) {
+  //   angle += 5;
+  //   navigator.spin(angle);
+  //   currentBrightness = controller.getBrightness();
+  //   if(tragetBrightness - 5 <= currentBrightness && currentBrightness <= tragetBrightness + 5) {
+  //     break;
+  //   }
+  // }
+  // ライントレースしながら進む
+  NormalCourseProperty normalCourseProperty2 = { 170, 100, { 0.1, 0.0, 0.0 }, { 0.05, 0.0, 0.12 } };
+  lineTracer.run(normalCourseProperty2);
+
+  controller.stopMotor();
+  controller.speakerPlayToneFS6(100);
+
   return true;
 }
 
