@@ -41,7 +41,7 @@ bool Calibrator::calibration()
   Display::print(5, "White: %3d", brightnessOfWhite);
   Display::print(6, "Black: %3d", brightnessOfBlack);
 
-  if(!setStartLine()) {
+  if(!setupPosition()) {
     return false;
   }
 
@@ -100,14 +100,14 @@ bool Calibrator::setLRCourse()
   return true;
 }
 
-bool Calibrator::setStartLine()
+bool Calibrator::setupPosition()
 {
   int r, g, b, currentBrightness;
   int tragetBrightness = (brightnessOfBlack + brightnessOfWhite) / 2;
   LineTracer lineTracer(controller, tragetBrightness, isLeft);
   LineTracer reverseLineTracer(controller, tragetBrightness, !isLeft);
 
-  NormalCourseProperty normalCourseProperty = { 10, 100, { 0.1, 0.0, 0.0 }, { 0.05, 0.0, 0.12 } };
+  NormalCourseProperty normalCourseProperty = { 10, 100, { 0.1, 0.0, 0.0 }, { 0.12, 0.0, 0.10 } };
 
   // 緑までライントレースしながら進む
   while(!controller.buttonIsPressedLeft()) {
@@ -120,6 +120,7 @@ bool Calibrator::setStartLine()
       controller.stopMotor();
       break;
     }
+    controller.tslpTsk(4);
   }
   controller.speakerPlayToneFS6(100);
 
@@ -128,22 +129,27 @@ bool Calibrator::setStartLine()
   navigator.move(-80, 10);
   // 180度回転
   navigator.spin(180);
-  // int angle = 90;
-  // navigator.spin(angle);
-  // while(true) {
-  //   angle += 5;
-  //   navigator.spin(angle);
-  //   currentBrightness = controller.getBrightness();
-  //   if(tragetBrightness - 5 <= currentBrightness && currentBrightness <= tragetBrightness + 5) {
-  //     break;
-  //   }
-  // }
   // ライントレースしながら進む
-  NormalCourseProperty normalCourseProperty2 = { 170, 100, { 0.1, 0.0, 0.0 }, { 0.05, 0.0, 0.12 } };
+  NormalCourseProperty normalCourseProperty2 = { 170, 100, { 0.1, 0.0, 0.0 }, { 0.12, 0.0, 0.10 } };
   lineTracer.run(normalCourseProperty2);
+  // 光センサーの値が(白+黒)/2 ± 5になるように走行体の位置を微調整する
+  while(true) {
+    currentBrightness = controller.getBrightness();
+    if(tragetBrightness - 5 <= currentBrightness && currentBrightness <= tragetBrightness + 5) {
+      break;
+    } else if(currentBrightness < tragetBrightness) {
+      controller.setLeftMotorPwm(0);
+      controller.setRightMotorPwm(1);
+    } else {
+      controller.setLeftMotorPwm(1);
+      controller.setRightMotorPwm(0);
+    }
+    controller.tslpTsk(4);
+  }
 
   controller.stopMotor();
   controller.speakerPlayToneFS6(100);
+  // Display::print(7, "%d %d", tragetBrightness, currentBrightness);
 
   return true;
 }

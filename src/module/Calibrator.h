@@ -64,7 +64,7 @@ class Calibrator {
   /** スタート位置の自己位置調整をする
    * @return 正常終了したかどうかの真偽値（Trueなら正常終了）
    */
-  bool setStartLine();
+  bool setupPosition();
 
  private:
   Controller& controller;
