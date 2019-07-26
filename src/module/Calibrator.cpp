@@ -41,9 +41,8 @@ bool Calibrator::calibration()
   Display::print(5, "White: %3d", brightnessOfWhite);
   Display::print(6, "Black: %3d", brightnessOfBlack);
 
-  if(!setupPosition()) {
-    return false;
-  }
+  // 精度が悪いため使用しない。今後、精度を上げて使用しても良い。
+  // if(!setupPosition()) return false;
 
   return true;
 }
